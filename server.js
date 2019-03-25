@@ -10,20 +10,23 @@ const posts = require('./routes/api/posts')
 const app = express()
 
 // body parser middleware
-app.use(bodyParser.urlencode({extended: false}))
+app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
 // db config
 const db = require('./config/keys').mongoURI
 
 // connect to mongodb
+
 mongoose
-  .connect(db)
+  .connect(db, { useNewUrlParser: true }) 
   .then(() => console.log('mongodb connected'))
   .catch(err => console.log(err))
 
-app.get('/', (req, res) => res.send('hello'))
+// useNewUrlParser to avoid deprecation warning
+// https://mongoosejs.com/docs/deprecations.html
 
+app.get('/', (req, res) => res.send('hello'))
 
 // use routes
 app.use('/api/users', users)
