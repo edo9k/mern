@@ -5,6 +5,10 @@ const gravatar = require('gravatar')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const keys = require('../../config/keys')
+const passport = require('passport')
+
+// load input validation
+const validateRegisterInput = require('../../validation/register')
 
 // load user model 
 const User = require('../../models/User')
@@ -19,10 +23,17 @@ router.get('/test', (req, res) => res.json({"message": "user works"}))
 // @desc  Tests users route
 // @access Public
 router.post('/register', (req, res) => {  
+  const { errors, isValid } = validateRegisterInput(req.body)
+
+  if (!isValid) {
+    return res.status(400).json(errors)
+  }
+
   User.findOne({ email: req.body.email })
   .then(user => {
     if(user) {
-      return res.status(400).json({email: 'Email already exists'})
+      errors.email = 'Email already exists'
+      return res.status(400).json(errors)
     } else {
       const avatar = gravatar.url(req.body.email, {
         s: '200', // size
@@ -51,8 +62,8 @@ router.post('/register', (req, res) => {
 })
 
 
-// @route GET api/users/test
-// @desc  Tests users route
+// @route GET api/users/login
+// @desc  Logs user in
 // @access Public
 router.post('/login', (req, res) => {
   const email = req.body.email
@@ -90,6 +101,19 @@ router.post('/login', (req, res) => {
     })
 
 })
+
+// @route GET api/users/current
+// @desc  Return current user
+// @access Private
+router.get('/current', passport.authenticate('jwt', { session: false }), 
+  (req, res) => {
+    res.json({
+      id: req.user.id,
+      name: req.user.name,
+      email: req.user.email
+    })
+  }
+)
 
 module.exports = router
 
