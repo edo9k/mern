@@ -80,7 +80,7 @@ router.get('/handle/:handle', () => {
 router.get('/user/:user_id', () => {
   const errors = {}
 
-  Profile.findOne({ handle: req.params.user_id })
+  Profile.findOne({ user: req.params.user_id })
     .populate('user', ['name', 'avatar'])
     .then(profile => {
       if (!profile) {
@@ -179,10 +179,12 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), (re
   })
 })
 
-// @route   POST api/profile/experience
-// @desc    Add experience to profile
+// @route   POST api/profile/education
+// @desc    Add education to profile
 // @access  Private
 router.post('/education', passport.authenticate('jwt', { session: false }), (req, res) => {
+  const { errors, isValid } = validateEducationInput(req.body)
+
   // check validation
   if (!isValid) {
     // return any errors with 400 status
@@ -240,7 +242,7 @@ router.delete('/education/:edu_id', passport.authenticate('jwt', { session: fals
       // save
       profile.save().then(profile => res.json(profile))
     })
-    .catch(err => res.status(404).json(erro))
+    .catch(err => res.status(404).json(err))
 })
 
 // @route   DELETE api/profile
